@@ -4,6 +4,7 @@ load_dotenv()  # Load environment variables from .env
 from flask import Flask, render_template_string, request
 import re
 import os
+app = Flask(__name__)
 
 # ----------------------------
 # Groq AI Setup
@@ -24,6 +25,7 @@ else:
     groq_client = Groq(api_key=GROQ_API_KEY)  # Initialize without proxies
     USE_AI = True
     print("✅ Groq AI Ready")
+
 
 # ----------------------------
 # Helper: Clean SQL input
@@ -450,7 +452,10 @@ let fileName='';
 function handleFile(input){
 const file=input.files[0];
 if(file){
-    fileName = file.name.replace(/\.sql$/i, "");
+    fileName = file.name.replace(/\.sql$/i, '');
+
+
+
 
 
 document.getElementById('fileName').textContent='📄 '+file.name;
