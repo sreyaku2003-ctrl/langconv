@@ -1,38 +1,39 @@
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv()  # Load environment variables from .env
 
 from flask import Flask, render_template_string, request
 import re
 import os
-import sys
-import os
 
-
-app = Flask(__name__)
-
-# Groq API Configuration
+# ----------------------------
+# Groq AI Setup
+# ----------------------------
 try:
     from groq import Groq
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-    
-    if not GROQ_API_KEY:
-        print("⚠️  Set GROQ_API_KEY environment variable")
-        USE_AI = False
-    else:
-        groq_client = Groq(api_key=GROQ_API_KEY)
-        USE_AI = True
-        print("✅ Groq AI Ready")
+    GROQ_IMPORTED = True
 except ImportError:
-    USE_AI = False
+    GROQ_IMPORTED = False
     print("❌ Install: pip install groq")
 
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
+if not GROQ_IMPORTED or not GROQ_API_KEY:
+    print("⚠️  Groq not available or GROQ_API_KEY not set")
+    USE_AI = False
+else:
+    groq_client = Groq(api_key=GROQ_API_KEY)  # Initialize without proxies
+    USE_AI = True
+    print("✅ Groq AI Ready")
+
+# ----------------------------
+# Helper: Clean SQL input
+# ----------------------------
 def clean_sql_input(sql_text):
     """Remove SQL Server metadata and prepare for conversion"""
-    # Remove everything before CREATE PROCEDURE
     lines = sql_text.splitlines()
     cleaned_lines = []
     found_create = False
-    
+
     for line in lines:
         stripped = line.strip().lower()
         if not found_create:
@@ -42,8 +43,9 @@ def clean_sql_input(sql_text):
         else:
             if stripped not in ("go", ""):
                 cleaned_lines.append(line)
-    
+
     return "\n".join(cleaned_lines)
+
 
 def groq_convert_sql(sql_text):
     """Use Groq AI with comprehensive conversion rules"""
